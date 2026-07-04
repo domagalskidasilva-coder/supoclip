@@ -1,0 +1,40 @@
+.env.local
+.DS_Store
+__pycache__
+*.egg-info
+logs/
+temp/
+.env
+*.m4a
+frontend/e2e/.seed.json
+
+# dependencies / local environments
+node_modules/
+.venv/
+backend/.venv/
+frontend/node_modules/
+
+# build and framework caches
+.next/
+frontend/.next/
+frontend/src/.next/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage*
+
+# local runtime/generated media
+backend/.tmp/
+backend/temp/
+backend/temp_*
+backend/logs/
+*.log
+
+# local assistant/tool state
+.claude/
+.agents/
+
+# local demo / scratch artifacts (not for the repo)
+backend/demo_clips/
+backend/demo_clips_*.log
+backend/run_demo.py

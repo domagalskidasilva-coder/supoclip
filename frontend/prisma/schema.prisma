@@ -1,0 +1,109 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AppSetting {
+  setting_key        String   @id @db.VarChar(100)
+  encrypted_value    String
+  prefer_admin_value Boolean  @default(false)
+  created_at         DateTime @default(now()) @db.Timestamptz
+  updated_at         DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  @@map("app_settings")
+}
+
+model Task {
+  id                              String    @id @default(uuid())
+  source_id                       String?
+  generated_clips_ids             String[]
+  status                          String    @default("pending") @db.VarChar(20)
+  progress                        Int?      @default(0)
+  progress_message                String?
+  completion_notification_sent_at DateTime? @db.Timestamptz
+  font_family                     String?   @default("TikTokSans-Regular") @db.VarChar(100)
+  font_size                       Int?      @default(24)
+  font_color                      String?   @default("#FFFFFF") @db.VarChar(7)
+  caption_template                String?   @default("default") @db.VarChar(50)
+  include_broll                   Boolean?  @default(false)
+  processing_mode                 String    @default("fast") @db.VarChar(20)
+  started_at                      DateTime? @db.Timestamptz
+  completed_at                    DateTime? @db.Timestamptz
+  cache_hit                       Boolean   @default(false)
+  error_code                      String?   @db.VarChar(80)
+  stage_timings_json              String?
+  created_at                      DateTime  @default(now()) @db.Timestamptz
+  updated_at                      DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  source Source? @relation(fields: [source_id], references: [id], onDelete: SetNull)
+  clips  GeneratedClip[]
+
+  @@index([source_id])
+  @@index([created_at])
+  @@index([status])
+  @@index([processing_mode])
+  @@map("tasks")
+}
+
+model Source {
+  id         String   @id @default(uuid())
+  type       String   @db.VarChar(20)
+  title      String   @db.VarChar(500)
+  url        String?  @db.VarChar(1000)
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  tasks Task[]
+
+  @@index([created_at])
+  @@map("sources")
+}
+
+model GeneratedClip {
+  id                 String   @id @default(uuid())
+  task_id            String
+  filename           String   @db.VarChar(255)
+  file_path          String   @db.VarChar(500)
+  start_time         String   @db.VarChar(20)
+  end_time           String   @db.VarChar(20)
+  duration           Float
+  text               String?
+  relevance_score    Float
+  reasoning          String?
+  clip_order         Int
+  virality_score     Int?     @default(0)
+  hook_score         Int?     @default(0)
+  engagement_score   Int?     @default(0)
+  value_score        Int?     @default(0)
+  shareability_score Int?     @default(0)
+  hook_type          String?  @db.VarChar(50)
+  created_at         DateTime @default(now()) @db.Timestamptz
+  updated_at         DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  task Task @relation(fields: [task_id], references: [id], onDelete: Cascade)
+
+  @@index([task_id])
+  @@index([clip_order])
+  @@index([created_at])
+  @@map("generated_clips")
+}
+
+model ProcessingCache {
+  cache_key       String   @id @db.VarChar(255)
+  source_url      String
+  source_type     String   @db.VarChar(20)
+  video_path      String?
+  transcript_text String?
+  analysis_json   String?
+  created_at      DateTime @default(now()) @db.Timestamptz
+  updated_at      DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  @@index([source_url])
+  @@map("processing_cache")
+}
